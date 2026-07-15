@@ -1,0 +1,40 @@
+name: Crypto Signal Bot
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # ogni 15 minuti, sempre, gratis
+  workflow_dispatch:          # aggiunge il pulsante "Run workflow" per testare a mano
+
+permissions:
+  contents: write   # serve per poter risalvare i file di stato nel repository
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run signal bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python signal_bot.py
+
+      - name: Save updated state back to the repo
+        run: |
+          git config user.name "crypto-signal-bot"
+          git config user.email "actions@users.noreply.github.com"
+          [ -f last_signals.json ] && git add last_signals.json
+          [ -f bot_config.json ] && git add bot_config.json
+          git diff --staged --quiet || git commit -m "Aggiorna stato bot"
+          git push
