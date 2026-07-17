@@ -35,6 +35,7 @@ jobs:
           git config user.name "crypto-signal-bot"
           git config user.email "actions@users.noreply.github.com"
           [ -f last_signals.json ] && git add last_signals.json
-          [ -f bot_config.json ] && git add bot_config.json
+          [ -f users.json ] && git add users.json
+          [ -f bot_config.json ] && git rm --cached bot_config.json 2>/dev/null || true
           git diff --staged --quiet || git commit -m "Aggiorna stato bot"
           git push
